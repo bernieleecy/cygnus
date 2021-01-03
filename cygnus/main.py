@@ -75,10 +75,8 @@ class PairwiseRMSD(MDData):
         Plotting pairwise RMSD data
         '''
         if ax is None:
-            if not plt.get_fignums():
-                plt.figure()
             ax = plt.gca()
-        fig = plt.gcf()
+        fig = ax.get_figure()
         divider = make_axes_locatable(ax)
         cax = divider.append_axes('right', size='5%', pad=0.05)
 
@@ -116,7 +114,10 @@ class PairwiseRMSD(MDData):
         return fig, ax
 
 
-class HBondsData(MDData):
+class InterAtomDist(MDData):
+    '''
+    For calculating distances between sets of atoms
+    '''
     def __init__(self, gro_file, traj_files, label):
         self.gro_file = gro_file
         self.traj_files = traj_files
@@ -147,21 +148,19 @@ class HBondsData(MDData):
         For plotting a single violin plot of distances
         '''
         if ax is None:
-            if not plt.get_fignums():
-                plt.figure()
             ax = plt.gca()
-            fig = plt.gcf()
+        fig = ax.get_figure()
 
-            sns.violinplot(data=self.df, ax=ax, scale=scale)
+        sns.violinplot(data=self.df, ax=ax, scale=scale)
 
-            ax.set(xlabel='Interaction',
-                   ylabel=r'Distance ($\rm \AA$)',
-                   **kwargs
-                   )
+        ax.set(xlabel='Interaction',
+               ylabel=r'Distance ($\rm \AA$)',
+               **kwargs
+               )
 
-            sns.despine()
-            fig.tight_layout()
-            return fig, ax
+        sns.despine()
+        fig.tight_layout()
+        return fig, ax
 
     def hued_violins(self, other, ax=None,
                      xlabel: str = 'Interaction',
@@ -181,10 +180,8 @@ class HBondsData(MDData):
         long_df = combined_df.melt(id_vars='Category')
 
         if ax is None:
-            if not plt.get_fignums():
-                plt.figure()
             ax = plt.gca()
-            fig = plt.gcf()
+        fig = ax.get_figure()
 
         sns.violinplot(x='variable', y='value', hue='Category',
                        data=long_df, inner=None, scale='area',
@@ -232,3 +229,71 @@ class HBondsData(MDData):
             return(np.mean(dist, axis=1))
         else:
             return(dist)
+
+
+class RMSFData(MDData):
+    '''
+    GROMACS is preferred for calculating RMSD and RMSF
+    Processing of the xvg file is done by default
+    '''
+    def __init__(self, xvg_file, label):
+        '''
+        Reads the xvg_file and label, stores the label
+        Then processes the xvg_file
+        '''
+        self.xvg_file = xvg_file
+        self.label = label
+        with open(self.xvg_file) as infile:
+            res_no = []
+            val = []
+
+            for line in infile:
+                if not (line.startswith("#") or line.startswith("@")):
+                    # two spaces between each entry
+                    data = line.strip().split('  ')
+                    res_no.append(float(data[0].strip()))
+                    val.append(float(data[1].strip()))
+
+            self.df = pd.DataFrame(val, index=res_no)
+            self.df['roll'] = self.df.rolling(5, center=True).mean()
+
+    def md_plot(self, ax=None):
+        '''
+        Single RMSF plot
+        '''
+        if ax is None:
+            ax = plt.gca()
+        fig = ax.get_figure()
+
+        ax.plot(self.df.iloc[:,0], label='Raw data', alpha=0.1)
+        ax.plot(self.df.iloc[:,1], label='Rolling average', color='C0')
+        ax.set(xlabel='Residue number',
+               ylabel='RMSF (nm)',
+               title=f'RMSF ({self.label})',
+               )
+
+        ax.legend(frameon=False)
+        sns.despine()
+        fig.tight_layout()
+
+
+def compare_rmsf(rmsf_objs, ax=None):
+    '''
+    Compare RMSF
+    '''
+    if ax is None:
+        ax = plt.gca()
+    fig = ax.get_figure()
+
+    for obj in rmsf_objs:
+        ax.plot(obj.df.iloc[:,0], label=obj.label)
+        print(obj.label)
+
+    ax.set(xlabel='Residue number',
+           ylabel='RMSF (nm)',
+           ylim=(0,1.0),
+           )
+
+    ax.legend(frameon=False)
+    sns.despine()
+    fig.tight_layout()
