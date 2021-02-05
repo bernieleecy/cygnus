@@ -70,6 +70,7 @@ class PairwiseRMSD(MDData):
         self.matrix = diffusionmap.DistanceMatrix(self.u, select=selection,
                                                   verbose=True).run()
 
+
     def md_plot(self, ax=None, **kwargs):
         '''
         Plotting pairwise RMSD data
@@ -191,7 +192,6 @@ class InterAtomDist(MDData):
                ylabel=ylabel,
                **kwargs
                )
-
         ax.legend(frameon=False)
 
         sns.despine()
