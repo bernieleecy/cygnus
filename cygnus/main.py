@@ -13,6 +13,57 @@ sns.set_style("ticks")
 sns.set_palette("colorblind")
 
 
+'''
+---------------
+ FUNCTIONS
+---------------
+'''
+
+def traj_dist_calc(u, ref, sel):
+    '''
+    For running calc_dist on all frames of the supplied trajectory
+    Designed to work with a single reference atom
+    Returns a (25005,1,X) matrix, where X is the number of atoms in the
+    selection
+    '''
+    dist = _Distances(u.trajectory, u, ref, sel).run()
+    return np.squeeze(dist.results)
+
+
+@analysis_class
+def _Distances(u, ref, sel):
+    '''
+    Calculates distance between all atoms of the reference and selection
+    Designed to work with a single reference atom
+    With the decorator, it becomes an analysis class
+    '''
+    dist = distances.distance_array(ref.positions, sel.positions,
+                                    box=u.dimensions)
+    return dist
+
+
+def compare_rmsf(rmsf_objs, ax=None):
+    '''
+    Compare RMSF
+    '''
+    if ax is None:
+        ax = plt.gca()
+    fig = ax.get_figure()
+
+    for obj in rmsf_objs:
+        ax.plot(obj.df.iloc[:,0], label=obj.label)
+        print(obj.label)
+
+    ax.set(xlabel='Residue number',
+           ylabel='RMSF (nm)',
+           ylim=(0,1.0),
+           )
+
+    ax.legend(frameon=False)
+    sns.despine()
+    fig.tight_layout()
+
+
 class MDData:
     def __init__(self, gro_file, traj_files):
         self.gro_file = gro_file
@@ -24,27 +75,6 @@ class MDData:
 
     def md_plot(self):
         raise NotImplementedError
-
-    def traj_dist_calc(self, ref, sel):
-        '''
-        For running calc_dist on all frames of the supplied trajectory
-        Designed to work with a single reference atom
-        Returns a (25005,1,X) matrix, where X is the number of atoms in the
-        selection
-        '''
-        dist = _Distances(self.u.trajectory, self.u, ref, sel).run()
-        return np.squeeze(dist.results)
-
-    @analysis_class
-    def _Distances(self, ref, sel):
-        '''
-        Calculates distance between all atoms of the reference and selection
-        Designed to work with a single reference atom
-        With the decorator, it becomes an analysis class
-        '''
-        dist = distances.distance_array(ref.positions, sel.positions,
-                                        box=self.u.dimensions)
-        return dist
 
 
 class PairwiseRMSD(MDData):
@@ -127,19 +157,20 @@ class InterAtomDist(MDData):
 
     def process_data(self, dist_dict):
         self.distances = []
+        print(dist_dict)
 
         for key, entry in dist_dict.items():
             if isinstance(entry, list):
                 print(key, entry)
                 for i in range(len(entry)):
-                    dist = _process_dict_dist(self.u, key, entry[i])
+                    dist = self._process_dict_dist(key, entry[i])
                     self.distances.append(dist)
         else:
             print(key, entry)
-            dist = _process_dict_dist(self.u, key, entry)
+            dist = self._process_dict_dist(key, entry)
             self.distances.append(dist)
 
-        self.df = pd.DataFrame(distances).T
+        self.df = pd.DataFrame(self.distances).T
         self.df.columns = [i+1 for i in range(len(self.df.columns))]
 
     def md_plot(self, ax=None,
@@ -276,24 +307,3 @@ class RMSFData(MDData):
         sns.despine()
         fig.tight_layout()
 
-
-def compare_rmsf(rmsf_objs, ax=None):
-    '''
-    Compare RMSF
-    '''
-    if ax is None:
-        ax = plt.gca()
-    fig = ax.get_figure()
-
-    for obj in rmsf_objs:
-        ax.plot(obj.df.iloc[:,0], label=obj.label)
-        print(obj.label)
-
-    ax.set(xlabel='Residue number',
-           ylabel='RMSF (nm)',
-           ylim=(0,1.0),
-           )
-
-    ax.legend(frameon=False)
-    sns.despine()
-    fig.tight_layout()

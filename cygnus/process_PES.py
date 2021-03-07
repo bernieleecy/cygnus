@@ -26,13 +26,12 @@ class OrcaData:
 
 class InterEnergy(OrcaData):
     '''
-    Interaction energy
+    Interaction energy, with counterpoise correction
     Usually supplied as a text file of reaction energy data
-    Currently assumes use of the counterpoise correction
     '''
-    def __init__(self, energy_file, theory_level):
+    def __init__(self, energy_file, label):
         self.energy_file = energy_file
-        self.theory_level = theory_level
+        self.label = label
 
     def process_data(self):
         with open(self.energy_file, 'r') as file:
@@ -53,10 +52,10 @@ class InterEnergy(OrcaData):
                 energy_kcal = float(data[-2]) - float(data[-1])
                 self.energies.append(energy_kcal)
 
-            min_index = self.energies.index(min(self.energies))
-            self.min_dist = self.dist[min_index]
-            self.min_energy = self.energies[min_index]
-            print(f'The mimina is at {self.min_dist}, {self.min_energy}')
+            self.min_index = self.energies.index(min(self.energies))
+            self.min_dist = self.dist[self.min_index]
+            self.min_energy = self.energies[self.min_index]
+            print(f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
 
     def plot(self, ax=None, format_plot=True,
                   **kwargs):
@@ -65,9 +64,8 @@ class InterEnergy(OrcaData):
         '''
         if ax is None:
             ax = plt.gca()
-        fig = ax.get_figure()
 
-        ax.plot(self.dist, self.energies, marker='x', label=self.theory_level)
+        ax.plot(self.dist, self.energies, marker='x', label=self.label)
 
         if format_plot:
             ax.set(xlabel='Distance (Å)',
@@ -75,22 +73,47 @@ class InterEnergy(OrcaData):
                    **kwargs)
             ax.legend(frameon=False)
             sns.despine()
-            fig.tight_layout()
             print('Formatting specified in plot')
 
         else:
             print('Formatting not specified in plot')
 
-        return fig, ax
+        return ax
 
+class CPCMEnergy(InterEnergy):
+    '''
+    Inherits from InterEnergy
+    But needs a new process_data method, since no BSSE applied
+    '''
+    def process_data(self):
+        with open(self.energy_file, 'r') as file:
+            # energies have already been converted to kcal/mol)
+
+            self.dist = []
+            self.energies = []
+
+            for line in file:
+                data = line.strip().split() # only need the first and last columns
+                file_data = data[0].split('_')
+
+                # remove the .out + convert to integer
+                self.dist.append(float(file_data[1]))
+
+                energy_kcal = float(data[-1])
+                self.energies.append(energy_kcal)
+
+            self.min_index = self.energies.index(min(self.energies))
+            self.min_dist = self.dist[self.min_index]
+            self.min_energy = self.energies[self.min_index]
+            print(f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
 
 class AmberData:
     '''
     Monomer energies hard coded in
     '''
-    def __init__(self, energy_file, force_field='AMBER99sb-ILDN'):
+    def __init__(self, energy_file, label='AMBER99sb-ILDN'):
         self.energy_file = energy_file
-        self.force_field = force_field
+        self.label = label
 
     def process_data(self, monomer=None):
         convert_kcal = 4.184
@@ -121,7 +144,7 @@ class AmberData:
             min_index = self.energies.index(min(self.energies))
             self.min_dist = self.dist[min_index]
             self.min_energy = self.energies[min_index]
-            print(f'The mimina is at {self.min_dist}, {self.min_energy}')
+            print(f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
 
     def write_data(self, out_file='processed_data.txt'):
         with open(out_file, 'w') as save_file:
@@ -129,15 +152,14 @@ class AmberData:
                 print(f'{x:.2f}, {y:.2f}', file=save_file)
 
     def plot(self, ax=None, format_plot=True,
-                **kwargs):
+             **kwargs):
         '''
         For plotting a 1D PES
         '''
         if ax is None:
             ax = plt.gca()
-        fig = ax.get_figure()
 
-        ax.plot(self.dist, self.energies, marker='x', label=self.force_field)
+        ax.plot(self.dist, self.energies, marker='x', label=self.label)
 
         if format_plot:
             ax.set(xlabel='Distance (Å)',
@@ -145,10 +167,9 @@ class AmberData:
                    **kwargs)
             ax.legend(frameon=False)
             sns.despine()
-            fig.tight_layout()
             print('Formatting specified in plot')
 
         else:
             print('Formatting not specified in plot')
 
-        return fig, ax
+        return ax
