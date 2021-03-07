@@ -18,7 +18,6 @@ setup(
         "matplotlib",
         "pandas",
         "seaborn",
-        "MDAnalysis",
     ]
 
 )
