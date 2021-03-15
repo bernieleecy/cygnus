@@ -10,7 +10,9 @@ class XvgFile:
     '''
     Basic template
     Includes a basic plotting function
+    Needs to be able to deal with xlabel and ylabel in basic cases
     '''
+
     def __init__(self, xvg_file):
         self.xvg_file = xvg_file
 
@@ -19,8 +21,15 @@ class XvgFile:
             x_data = []
             y_data = []
             for line in file:
-                if line.startswith(('#','@')):
+                if line.startswith('#'):
                     pass
+                elif line.startswith('@'):
+                    if 'xaxis' in line:
+                        data = line.strip().split('"')
+                        self.x_label = data[1]
+                    elif 'yaxis' in line:
+                        data = line.strip().split('"')
+                        self.y_label = data[1]
                 else:
                     data = line.strip().split()
                     x_data.append(float(data[0]))
@@ -33,19 +42,24 @@ class XvgFile:
         if ax is None:
             ax = plt.gca()
 
-        ax.plot(self.x_data, self.y_data)
+        ax.plot(self.x_data, self.y_data, **kwargs)
+        ax.set(xlabel=self.x_label,
+               ylabel=self.y_label)
+        sns.despine()
 
         return ax
+
 
 class EM(XvgFile):
     '''
     For handling energy minimisation plots
     '''
+
     def plot(self, ax=None, format_plot=True, **kwargs):
         if ax is None:
             ax = plt.gca()
 
-        ax.plot(self.x_data, self.y_data, color='black')
+        ax.plot(self.x_data, self.y_data, color='black', **kwargs)
 
         if format_plot:
             ax.set(xlabel='Steps',
@@ -54,16 +68,19 @@ class EM(XvgFile):
 
         return ax
 
+
 class PullForce(XvgFile):
     '''
     For plotting pullf.xvg files from pulling simulations
     Assumes kJ/mol/nm as units
     '''
+
     def plot(self, ax=None, format_plot=True, **kwargs):
         if ax is None:
             ax = plt.gca()
 
-        ax.plot(self.x_data, self.y_data, color='black', linewidth=0.8)
+        ax.plot(self.x_data, self.y_data, color='black', linewidth=0.8,
+                **kwargs)
 
         if format_plot:
             ax.set(xlabel='Time (ps)',
@@ -72,16 +89,18 @@ class PullForce(XvgFile):
 
         return ax
 
+
 class PMF(XvgFile):
     '''
     For handling PMF plots
     Assumes kcal/mol as units
     '''
+
     def plot(self, ax=None, format_plot=True, **kwargs):
         if ax is None:
             ax = plt.gca()
 
-        ax.plot(self.x_data, self.y_data)
+        ax.plot(self.x_data, self.y_data, **kwargs)
 
         if format_plot:
             ax.set(xlabel=r'$\xi$ (nm)',
@@ -97,16 +116,18 @@ class PMF(XvgFile):
         self.dG_value = min(self.y_data) - max(self.y_data)
         print(f'Calculated dG value is {self.dG_value:.2f} {units}')
 
+
 class Histo(XvgFile):
     '''
     For plotting histograms from gmx wham
     '''
+
     def process_data(self):
         with open(self.xvg_file, 'r') as file:
             self.bins = []
             self.counts = []
             for line in file:
-                if line.startswith(('#','@')):
+                if line.startswith(('#', '@')):
                     pass
                 else:
                     data = line.strip().split()
@@ -123,9 +144,10 @@ class Histo(XvgFile):
 
         for i, col in enumerate(df.columns, start=1):
             sns.kdeplot(data=df, x=df.index,
-                        weights=df[col], label=f'Window {i}', ax=ax)
+                        weights=df[col], label=f'Window {i}', ax=ax,
+                        **kwargs)
 
-        ax.set(xlim=(0,7),
+        ax.set(xlim=(0, 7),
                xlabel=r'$\xi$ (nm)')
         ax.legend(frameon=False)
         sns.despine()

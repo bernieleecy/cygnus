@@ -1,3 +1,4 @@
 .DS_Store
 /cygnus.egg-info/
 /cygnus/__pycache__/
+.vscode
