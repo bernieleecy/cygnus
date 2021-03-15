@@ -12,6 +12,7 @@ class OrcaData:
     Currently only has 1 child class (InterEnergy), but may need to expand in the
     future
     '''
+
     def __init__(self, energy_file):
         '''
         Energy file (already grepped)
@@ -24,11 +25,13 @@ class OrcaData:
     def plot(self):
         raise NotImplementedError
 
+
 class InterEnergy(OrcaData):
     '''
     Interaction energy, with counterpoise correction
     Usually supplied as a text file of reaction energy data
     '''
+
     def __init__(self, energy_file, label):
         self.energy_file = energy_file
         self.label = label
@@ -43,7 +46,7 @@ class InterEnergy(OrcaData):
             self.energies = []
 
             for line in file:
-                data = line.strip().split() # only need the first and last columns
+                data = line.strip().split()  # only need the first and last columns
                 file_data = data[0].split('_')
 
                 # remove the .out + convert to integer
@@ -55,10 +58,11 @@ class InterEnergy(OrcaData):
             self.min_index = self.energies.index(min(self.energies))
             self.min_dist = self.dist[self.min_index]
             self.min_energy = self.energies[self.min_index]
-            print(f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
+            print(
+                f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
 
     def plot(self, ax=None, format_plot=True,
-                  **kwargs):
+             **kwargs):
         '''
         For plotting a 1D PES
         '''
@@ -80,11 +84,13 @@ class InterEnergy(OrcaData):
 
         return ax
 
+
 class CPCMEnergy(InterEnergy):
     '''
     Inherits from InterEnergy
     But needs a new process_data method, since no BSSE applied
     '''
+
     def process_data(self):
         with open(self.energy_file, 'r') as file:
             # energies have already been converted to kcal/mol)
@@ -93,7 +99,7 @@ class CPCMEnergy(InterEnergy):
             self.energies = []
 
             for line in file:
-                data = line.strip().split() # only need the first and last columns
+                data = line.strip().split()  # only need the first and last columns
                 file_data = data[0].split('_')
 
                 # remove the .out + convert to integer
@@ -105,12 +111,15 @@ class CPCMEnergy(InterEnergy):
             self.min_index = self.energies.index(min(self.energies))
             self.min_dist = self.dist[self.min_index]
             self.min_energy = self.energies[self.min_index]
-            print(f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
+            print(
+                f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
+
 
 class AmberData:
     '''
     Monomer energies hard coded in
     '''
+
     def __init__(self, energy_file, label='AMBER99sb-ILDN'):
         self.energy_file = energy_file
         self.label = label
@@ -138,13 +147,14 @@ class AmberData:
                 elif line.strip():
                     data = line.strip().split()
                     int_energy = (float(data[1]) / convert_kcal) \
-                                 - complex_energy
+                        - complex_energy
                     self.energies.append(int_energy)
 
             min_index = self.energies.index(min(self.energies))
             self.min_dist = self.dist[min_index]
             self.min_energy = self.energies[min_index]
-            print(f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
+            print(
+                f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
 
     def write_data(self, out_file='processed_data.txt'):
         with open(out_file, 'w') as save_file:
@@ -172,8 +182,4 @@ class AmberData:
         else:
             print('Formatting not specified in plot')
 
-<<<<<<< HEAD
         return ax
-=======
-        return ax
->>>>>>> cfdf00559097178646e8a964c3cec77c3c1f7347
