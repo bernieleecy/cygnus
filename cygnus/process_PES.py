@@ -172,4 +172,8 @@ class AmberData:
         else:
             print('Formatting not specified in plot')
 
+<<<<<<< HEAD
         return ax
+=======
+        return ax
+>>>>>>> cfdf00559097178646e8a964c3cec77c3c1f7347
