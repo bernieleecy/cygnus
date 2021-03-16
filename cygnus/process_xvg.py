@@ -168,8 +168,8 @@ class Histo(XvgFile):
 
     '''
 
-   def process_data(self):
-       '''Processes xvg file with more than 2 columns'''
+    def process_data(self):
+        '''Processes xvg file with more than 2 columns'''
 
         with open(self.xvg_file, 'r') as file:
             self.bins = []
