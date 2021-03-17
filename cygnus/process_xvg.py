@@ -201,3 +201,5 @@ class Histo(XvgFile):
                xlabel=r'$\xi$ (nm)')
         ax.legend(frameon=False)
         sns.despine()
+
+        return ax
