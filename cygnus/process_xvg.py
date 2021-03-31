@@ -44,6 +44,8 @@ class XvgFile:
         '''Extracts data
 
         Reads the xvg file and returns the x_data, y_data, x_label and y_label attributes
+
+        Return self added to allow chaining
         '''
 
         with open(self.xvg_file, 'r') as file:
@@ -67,6 +69,8 @@ class XvgFile:
             self.x_data = np.array(x_data)
             self.y_data = np.array(y_data)
 
+        return self
+
     def plot(self, ax=None, format_plot=True, **kwargs):
         '''Basic xy plot
 
@@ -79,8 +83,13 @@ class XvgFile:
             ax = plt.gca()
 
         ax.plot(self.x_data, self.y_data, **kwargs)
-        ax.set(xlabel=self.x_label,
-               ylabel=self.y_label)
+
+        try:
+            ax.set(xlabel=self.x_label,
+                   ylabel=self.y_label)
+        except AttributeError:
+            pass
+
         sns.despine()
 
         return ax
