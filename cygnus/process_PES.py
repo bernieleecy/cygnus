@@ -61,6 +61,8 @@ class InterEnergy(OrcaData):
             print(
                 f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
 
+            return self
+
     def plot(self, ax=None, format_plot=True,
              **kwargs):
         '''
@@ -114,6 +116,8 @@ class CPCMEnergy(InterEnergy):
             print(
                 f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
 
+            return self
+
 
 class AmberData:
     '''
@@ -155,6 +159,8 @@ class AmberData:
             self.min_energy = self.energies[min_index]
             print(
                 f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
+
+            return self
 
     def write_data(self, out_file='processed_data.txt'):
         with open(out_file, 'w') as save_file:
