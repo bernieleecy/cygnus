@@ -104,8 +104,14 @@ class CPCMEnergy(InterEnergy):
                 data = line.strip().split()  # only need the first and last columns
                 file_data = data[0].split('_')
 
-                # remove the .out + convert to integer
-                self.dist.append(float(file_data[1]))
+                # search for the distance label in the file_data variable
+                # just search for something that can be converted to a float
+                for d in file_data:
+                    try:
+                        self.dist.append(float(d))
+                        break
+                    except ValueError:
+                        pass
 
                 energy_kcal = float(data[-1])
                 self.energies.append(energy_kcal)
