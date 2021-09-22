@@ -59,7 +59,7 @@ class InterEnergy(OrcaData):
             self.min_dist = self.dist[self.min_index]
             self.min_energy = self.energies[self.min_index]
             print(
-                f'The mimina is at {self.min_dist:.2f}, {self.min_energy:.2f}')
+                f'The minima is at {self.min_dist:.2f}, {self.min_energy:.2f}')
 
             return self
 
