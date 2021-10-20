@@ -7,26 +7,7 @@ sns.set_style("ticks")
 sns.set_palette("colorblind")
 
 
-class OrcaData:
-    '''
-    Currently only has 1 child class (InterEnergy), but may need to expand in the
-    future
-    '''
-
-    def __init__(self, energy_file):
-        '''
-        Energy file (already grepped)
-        '''
-        self.energy_file = energy_file
-
-    def process_data(self):
-        raise NotImplementedError
-
-    def plot(self):
-        raise NotImplementedError
-
-
-class InterEnergy(OrcaData):
+class InterEnergy:
     '''
     Interaction energy, with counterpoise correction
     Usually supplied as a text file of reaction energy data
@@ -115,6 +96,42 @@ class CPCMEnergy(InterEnergy):
 
                 energy_kcal = float(data[-1])
                 self.energies.append(energy_kcal)
+
+            self.min_index = self.energies.index(min(self.energies))
+            self.min_dist = self.dist[self.min_index]
+            self.min_energy = self.energies[self.min_index]
+            print(
+                f'The minima is at {self.min_dist:.2f}, {self.min_energy:.2f}')
+
+            return self
+
+
+class SAPTEnergy(InterEnergy):
+    '''
+    Inherits from InterEnergy
+    Also needs a new process_data method, since the data is formatted differently
+    BSSE not relevant here
+
+    Data only contains 2 columns: 1 for distance, 1 for interaction energy (kcal/mol) 
+    '''
+
+    def process_data(self):
+        with open(self.energy_file, 'r') as file:
+
+            self.dist = []
+            self.energies = []
+
+            for line in file:
+                data = line.strip().split()
+
+                # to handle header lines
+                try:
+                    float(data[0])
+                except ValueError:
+                    pass
+                else:
+                    self.dist.append(float(data[0]))
+                    self.energies.append(float(data[1]))
 
             self.min_index = self.energies.index(min(self.energies))
             self.min_dist = self.dist[self.min_index]
