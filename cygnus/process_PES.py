@@ -52,7 +52,13 @@ class InterEnergy:
         if ax is None:
             ax = plt.gca()
 
-        ax.plot(self.dist, self.energies, marker='x', label=self.label)
+        # sort the x-data, just in case it contains negative values 
+        # then reorder the data for plotting
+        order = np.argsort(self.dist)
+        xs = np.array(self.dist)[order]
+        ys = np.array(self.energies)[order]
+
+        ax.plot(xs, ys, marker='x', label=self.label)
 
         if format_plot:
             ax.set(xlabel='Distance (Å)',
