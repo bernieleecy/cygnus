@@ -5,7 +5,7 @@ setup(
     version="0.1",
     author="Bernie Lee",
     author_email="bernadette.lee.cy@gmail.com",
-    description=("cygnus: boop boop"),
+    description=("cygnus: for misc plotting functions"),
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -15,9 +15,9 @@ setup(
     python_requires='>=3.7',
     install_requires=[
         "numpy>=1.17.0",
-        "matplotlib",
-        "pandas",
-        "seaborn",
+        "matplotlib>=3.4.0",
+        "pandas>=1.3.0",
+        "seaborn>=0.11.0",
     ]
 
 )
